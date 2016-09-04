@@ -47,14 +47,14 @@ def monte_carlo_tree_search_uct(board_state, side, number_of_samples):
         current_board_state = board_state
         first_unvisited_child = True
         rollout_path = []
-        winner = 0
+        result = 0
 
         while True:
             move_states = {move: apply_move(current_board_state, move, current_side)
                            for move in available_moves(current_board_state)}
 
             if not move_states:
-                winner = 0
+                result = 0
                 break
 
             if all((state in state_samples) for _, state in move_states):
@@ -62,26 +62,37 @@ def monte_carlo_tree_search_uct(board_state, side, number_of_samples):
                                                                                         state_samples[s],
                                                                                         total_samples))
             else:
-                move = random.choice(move_states.keys())
+                move = random.choice(list(move_states.keys()))
 
-            current_side = -current_side
             current_board_state = move_states[move]
 
             if first_unvisited_child:
-                rollout_path.append(current_board_state)
+                rollout_path.append((current_board_state, current_side))
                 if current_board_state not in state_samples:
                     first_unvisited_child = False
 
-            winner = has_winner(current_board_state)
-            if winner != 0:
+            current_side = -current_side
+
+            result = has_winner(current_board_state)
+            if result != 0:
                 break
 
-        for state in rollout_path:
-            state_samples[state] += 1.
-            state_results[state] += winner * side
+        for path_state, path_side in rollout_path:
+            state_samples[path_state] += 1.
+            result *= path_side
+            # normalize results to be between 0 and 1 before this it between -1 and 1
+            result /= 2.
+            result += .5
+            state_results[path_state] += result
 
     move_states = {move: apply_move(board_state, move, side) for move in available_moves(board_state)}
 
     move = max(move_states, key=lambda x: state_results[move_states[x]] / state_samples[move_states[x]])
 
     return state_results[move_states[move]] / state_samples[move_states[move]], move
+
+board_state = ((0, 0, 1),
+               (1, -1, -1),
+               (0, 0, 0))
+
+print(monte_carlo_tree_search_uct(board_state, 1, 100))
