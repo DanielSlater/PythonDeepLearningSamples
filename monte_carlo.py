@@ -34,15 +34,15 @@ def monte_carlo_tree_search(board_state, side, number_of_samples):
     return move_wins[move] / move_samples[move], move
 
 
-def upper_confidence_bounds(wins, samples, total_samples):
-    return wins / samples + math.sqrt(2 * math.log(total_samples) / samples)
+def upper_confidence_bounds(payout, samples_for_this_machine, log_total_samples):
+    return payout / samples_for_this_machine + math.sqrt((2 * log_total_samples) / samples_for_this_machine)
 
 
 def monte_carlo_tree_search_uct(board_state, side, number_of_samples):
     state_results = collections.defaultdict(float)
     state_samples = collections.defaultdict(float)
 
-    for total_samples in range(number_of_samples):
+    for _ in range(number_of_samples):
         current_side = side
         current_board_state = board_state
         first_unvisited_child = True
@@ -58,9 +58,10 @@ def monte_carlo_tree_search_uct(board_state, side, number_of_samples):
                 break
 
             if all((state in state_samples) for _, state in move_states):
+                log_total_samples = math.log(sum(state_samples[s] for s in move_states.values()))
                 move, state = max(move_states, key=lambda _, s: upper_confidence_bounds(state_results[s],
                                                                                         state_samples[s],
-                                                                                        total_samples))
+                                                                                        log_total_samples))
             else:
                 move = random.choice(list(move_states.keys()))
 
@@ -91,8 +92,12 @@ def monte_carlo_tree_search_uct(board_state, side, number_of_samples):
 
     return state_results[move_states[move]] / state_samples[move_states[move]], move
 
-board_state = ((0, 0, 1),
-               (1, -1, -1),
-               (0, 0, 0))
+# board_state = ((0, 0, 1),
+#                (1, -1, -1),
+#                (0, 0, 0))
 
-print(monte_carlo_tree_search_uct(board_state, 1, 100))
+board_state = ((1, 0, -1),
+               (1, 0, 0),
+               (0, -1, 0))
+
+print(monte_carlo_tree_search_uct(board_state, -1, 10000))
