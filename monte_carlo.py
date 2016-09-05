@@ -45,11 +45,11 @@ def monte_carlo_tree_search_uct(board_state, side, number_of_samples):
     for _ in range(number_of_samples):
         current_side = side
         current_board_state = board_state
-        first_unvisited_child = True
+        first_unvisited_node = True
         rollout_path = []
         result = 0
 
-        while True:
+        while result == 0:
             move_states = {move: apply_move(current_board_state, move, current_side)
                            for move in available_moves(current_board_state)}
 
@@ -67,24 +67,22 @@ def monte_carlo_tree_search_uct(board_state, side, number_of_samples):
 
             current_board_state = move_states[move]
 
-            if first_unvisited_child:
+            if first_unvisited_node:
                 rollout_path.append((current_board_state, current_side))
                 if current_board_state not in state_samples:
-                    first_unvisited_child = False
+                    first_unvisited_node = False
 
             current_side = -current_side
 
             result = has_winner(current_board_state)
-            if result != 0:
-                break
 
-        for path_state, path_side in rollout_path:
-            state_samples[path_state] += 1.
+        for path_board_state, path_side in rollout_path:
+            state_samples[path_board_state] += 1.
             result *= path_side
             # normalize results to be between 0 and 1 before this it between -1 and 1
             result /= 2.
             result += .5
-            state_results[path_state] += result
+            state_results[path_board_state] += result
 
     move_states = {move: apply_move(board_state, move, side) for move in available_moves(board_state)}
 
