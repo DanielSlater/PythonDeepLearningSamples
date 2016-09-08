@@ -1,13 +1,10 @@
 import tensorflow as tf
 import numpy as np
 
-# we will create a set of states, the agent get a reward for getting to the 5th one(4 in zero based array).
-# the agent can go forward or backward by one state with wrapping(so if you go back from the 1st state you go to the
-# end).
 states = [0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 NUM_STATES = len(states)
 NUM_ACTIONS = 2
-FUTURE_REWARD_DISCOUNT = 0.5
+DISCOUNT_FACTOR = 0.5
 
 
 def hot_one_state(index):
@@ -16,25 +13,23 @@ def hot_one_state(index):
     return array
 
 
-# The None here is for batch training
 session = tf.Session()
 state = tf.placeholder("float", [None, NUM_STATES])
 targets = tf.placeholder("float", [None, NUM_ACTIONS])
 
-hidden_weights = tf.Variable(tf.constant(0., shape=[NUM_STATES, NUM_ACTIONS]))
+weights = tf.Variable(tf.constant(0., shape=[NUM_STATES, NUM_ACTIONS]))
 
-output = tf.matmul(state, hidden_weights)
+output = tf.matmul(state, weights)
 
 loss = tf.reduce_mean(tf.square(output - targets))
-train_operation = tf.train.AdamOptimizer(0.1).minimize(loss)
+train_operation = tf.train.GradientDescentOptimizer(0.05).minimize(loss)
 
 session.run(tf.initialize_all_variables())
 
-for i in range(50):
+for _ in range(50):
     state_batch = []
     rewards_batch = []
 
-    # create a batch of states
     for state_index in range(NUM_STATES):
         state_batch.append(hot_one_state(state_index))
 
@@ -44,9 +39,10 @@ for i in range(50):
         minus_action_state_reward = session.run(output, feed_dict={state: [hot_one_state(minus_action_index)]})
         plus_action_state_reward = session.run(output, feed_dict={state: [hot_one_state(plus_action_index)]})
 
-        # these action rewards are the results of the Q function for this state and the actions minus or plus
-        action_rewards = [states[minus_action_index] + FUTURE_REWARD_DISCOUNT * np.max(minus_action_state_reward),
-                          states[plus_action_index] + FUTURE_REWARD_DISCOUNT * np.max(plus_action_state_reward)]
+        minus_action_q_value = states[minus_action_index] + DISCOUNT_FACTOR * np.max(minus_action_state_reward)
+        plus_action_q_value = states[plus_action_index] + DISCOUNT_FACTOR * np.max(plus_action_state_reward)
+
+        action_rewards = [minus_action_q_value, plus_action_q_value]
         rewards_batch.append(action_rewards)
 
     session.run(train_operation, feed_dict={
