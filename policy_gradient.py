@@ -23,13 +23,13 @@ hidden_weights_3 = tf.Variable(
 output_weights = tf.Variable(tf.truncated_normal((HIDDEN_NODES[-1], OUTPUT_NODES), stddev=1. / np.sqrt(OUTPUT_NODES)))
 
 hidden_layer_1 = tf.nn.relu(
-    tf.matmul(input_placeholder, hidden_weights_1) + tf.Variable(tf.truncated_normal((HIDDEN_NODES[0],), stddev=0.001)))
+    tf.matmul(input_placeholder, hidden_weights_1) + tf.Variable(tf.constant(0.01, shape=(HIDDEN_NODES[0],))))
 hidden_layer_2 = tf.nn.relu(
-    tf.matmul(hidden_layer_1, hidden_weights_2) + tf.Variable(tf.truncated_normal((HIDDEN_NODES[1],), stddev=0.001)))
+    tf.matmul(hidden_layer_1, hidden_weights_2) + tf.Variable(tf.constant(0.01, shape=(HIDDEN_NODES[1],))))
 hidden_layer_3 = tf.nn.relu(
-    tf.matmul(hidden_layer_2, hidden_weights_3) + tf.Variable(tf.truncated_normal((HIDDEN_NODES[2],), stddev=0.001)))
+    tf.matmul(hidden_layer_2, hidden_weights_3) + tf.Variable(tf.constant(0.01, shape=(HIDDEN_NODES[2],))))
 output_layer = tf.nn.softmax(
-    tf.matmul(hidden_layer_3, output_weights) + tf.Variable(tf.truncated_normal((OUTPUT_NODES,), stddev=0.001)))
+    tf.matmul(hidden_layer_3, output_weights) + tf.Variable(tf.constant(0.01, shape=(OUTPUT_NODES,))))
 
 policy_gradient = tf.reduce_sum(tf.reshape(reward_placeholder, (-1, 1)) * actual_move_placeholder * output_layer)
 train_step = tf.train.RMSPropOptimizer(LEARN_RATE).minimize(-policy_gradient)
@@ -42,7 +42,7 @@ episode_number = 1
 results = collections.deque()
 
 
-def make_move(board_state):
+def make_move(board_state, side):
     board_state_flat = np.ravel(board_state)
     board_states.append(board_state_flat)
     probability_of_actions = sess.run(output_layer, feed_dict={input_placeholder: [board_state_flat]})[0]
