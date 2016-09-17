@@ -90,4 +90,4 @@ while True:
         del rewards[:]
 
     if episode_number % PRINT_RESULTS_EVERY_X == 0:
-        print("episode: %s win_rate: %s", episode_number, 0.5 + sum(results) / (PRINT_RESULTS_EVERY_X * 2.))
+        print("episode: %s win_rate: %s" % (episode_number, 0.5 + sum(results) / (PRINT_RESULTS_EVERY_X * 2.)))
