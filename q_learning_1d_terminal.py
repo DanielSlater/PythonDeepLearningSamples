@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 
 states = [0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+terminal = [False, False, False, False, True, False, False, False, False, False]
 NUM_STATES = len(states)
 NUM_ACTIONS = 2
 DISCOUNT_FACTOR = 0.5
@@ -36,11 +37,17 @@ for _ in range(50):
         minus_action_index = (state_index - 1) % NUM_STATES
         plus_action_index = (state_index + 1) % NUM_STATES
 
-        minus_action_state_reward = session.run(output, feed_dict={state: [hot_one_state(minus_action_index)]})
-        plus_action_state_reward = session.run(output, feed_dict={state: [hot_one_state(plus_action_index)]})
+        if terminal[minus_action_index]:
+            minus_action_q_value = DISCOUNT_FACTOR * states[minus_action_index]
+        else:
+            minus_action_state_reward = session.run(output, feed_dict={state: [hot_one_state(minus_action_index)]})
+            minus_action_q_value = DISCOUNT_FACTOR * (states[minus_action_index] + np.max(minus_action_state_reward))
 
-        minus_action_q_value = DISCOUNT_FACTOR * (states[minus_action_index] + np.max(minus_action_state_reward))
-        plus_action_q_value = DISCOUNT_FACTOR * (states[plus_action_index] + np.max(plus_action_state_reward))
+        if terminal[plus_action_index]:
+            plus_action_q_value = DISCOUNT_FACTOR * states[plus_action_index]
+        else:
+            plus_action_state_reward = session.run(output, feed_dict={state: [hot_one_state(plus_action_index)]})
+            plus_action_q_value = DISCOUNT_FACTOR * (states[plus_action_index] + np.max(plus_action_state_reward))
 
         action_rewards = [minus_action_q_value, plus_action_q_value]
         rewards_batch.append(action_rewards)
@@ -49,5 +56,5 @@ for _ in range(50):
         state: state_batch,
         targets: rewards_batch})
 
-    print([states[x] + np.max(session.run(output, feed_dict={state: [hot_one_state(x)]}))
+    print([states[x] + (1-float(terminal[x]))*np.max(session.run(output, feed_dict={state: [hot_one_state(x)]}))
            for x in range(NUM_STATES)])
