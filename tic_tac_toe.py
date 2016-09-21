@@ -52,32 +52,36 @@ def has_winner(board_state):
     return 0  # no one has won, return 0 for a draw
 
 
-def play_game(plus_player_func, minus_player_func):
+def play_game(plus_player_func, minus_player_func, log=False):
     board_state = new_board()
     player_turn = 1
 
     while True:
-        _avialable_moves = list(available_moves(board_state))
-        if len(_avialable_moves) == 0:
+        available_moves = list(available_moves(board_state))
+        if len(available_moves) == 0:
             # draw
-            print("no moves left, game ended a draw")
+            if log:
+                print("no moves left, game ended a draw")
             return 0.
         if player_turn > 0:
             move = plus_player_func(board_state, 1)
         else:
             move = minus_player_func(board_state, -1)
 
-        if move not in _avialable_moves:
+        if move not in available_moves:
             # if a player makes an invalid move the other player wins
-            print("illegal move ", move)
+            if log:
+                print("illegal move ", move)
             return -player_turn
 
         board_state = apply_move(board_state, move, player_turn)
-        print(board_state)
+        if log:
+            print(board_state)
 
         winner = has_winner(board_state)
         if winner != 0:
-            print("we have a winner, side: %s" % player_turn)
+            if log:
+                print("we have a winner, side: %s" % player_turn)
             return winner
         player_turn = -player_turn
 
