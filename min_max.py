@@ -2,7 +2,7 @@ from tic_tac_toe import available_moves, apply_move, has_winner
 import sys
 
 
-def score_line(line):
+def _score_line(line):
     minus_count = line.count(-1)
     plus_count = line.count(1)
     if minus_count + plus_count < 3:
@@ -14,19 +14,43 @@ def score_line(line):
 
 
 def evaluate(board_state):
+    """Get a rough score for how good we think this board position is for the plus_player. Does this based on number of
+    2 in row lines we have.
+
+    Args:
+        board_state (3x3 tuple of int): The board state we are evaluating
+
+    Returns:
+        int: evaluated score for the position for the plus player, posative is good for the plus player, negative good
+            for the minus player
+    """
     score = 0
     for x in range(3):
-        score += score_line(board_state[x])
+        score += _score_line(board_state[x])
     for y in range(3):
-        score += score_line([i[y] for i in board_state])
+        score += _score_line([i[y] for i in board_state])
+
     # diagonals
-    score += score_line([board_state[i][i] for i in range(3)])
-    score += score_line([board_state[2 - i][i] for i in range(3)])
+    score += _score_line([board_state[i][i] for i in range(3)])
+    score += _score_line([board_state[2 - i][i] for i in range(3)])
 
     return score
 
 
-def min_max(board_state, side, max_depth):
+def min_max(board_state, side, max_depth, evaluation_func=evaluate):
+    """Runs the min_max_algorithm on a given board_sate for a given side, to a given depth in order to find the best
+    move
+
+    Args:
+        board_state (3x3 tuple of int): The board state we are evaluating
+        side (int): either +1 or -1
+        max_depth (int): how deep we want our tree to go before we use the evaluate method to determine how good the
+        position is.
+        evaluation_func (board_state -> int): Function used to evaluate the position for the plus player
+
+    Returns:
+        (best_score(int), best_score_move((int, int)): the move found to be best and what it's min-max score was
+    """
     best_score = None
     best_score_move = None
 
@@ -42,7 +66,7 @@ def min_max(board_state, side, max_depth):
             return winner * 10000, move
         else:
             if max_depth <= 1:
-                score = evaluate(new_board_state)
+                score = evaluation_func(new_board_state)
             else:
                 score, _ = min_max(new_board_state, -side, max_depth - 1)
             if side > 0:
@@ -56,7 +80,23 @@ def min_max(board_state, side, max_depth):
     return best_score, best_score_move
 
 
-def min_max_alpha_beta(board_state, side, max_depth, alpha=-sys.float_info.max, beta=sys.float_info.max):
+def min_max_alpha_beta(board_state, side, max_depth, evaluation_func=evaluate, alpha=-sys.float_info.max,
+                       beta=sys.float_info.max):
+    """Runs the min_max_algorithm on a given board_sate for a given side, to a given depth in order to find the best
+    move
+
+    Args:
+        board_state (3x3 tuple of int): The board state we are evaluating
+        side (int): either +1 or -1
+        max_depth (int): how deep we want our tree to go before we use the evaluate method to determine how good the
+        position is.
+        evaluation_func (board_state -> int): Function used to evaluate the position for the plus player
+        alpha (float): Used when this is called recursively, normally ignore
+        beta (float): Used when this is called recursively, normally ignore
+
+    Returns:
+        (best_score(int), best_score_move((int, int)): the move found to be best and what it's min-max score was
+    """
     best_score_move = None
     moves = list(available_moves(board_state))
     if not moves:
@@ -69,7 +109,7 @@ def min_max_alpha_beta(board_state, side, max_depth, alpha=-sys.float_info.max, 
             return winner * 10000, move
         else:
             if max_depth <= 1:
-                score = evaluate(new_board_state)
+                score = evaluation_func(new_board_state)
             else:
                 score, _ = min_max_alpha_beta(new_board_state, -side, max_depth - 1, alpha, beta)
 
