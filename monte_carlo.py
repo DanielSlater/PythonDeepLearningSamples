@@ -5,6 +5,17 @@ from tic_tac_toe import has_winner, available_moves, apply_move
 
 
 def monte_carlo_sample(board_state, side):
+    """Sample a single rollout from the current board_state and side. Moves are made to the current board_state until we
+     reach a terminal state then the result and the first move made to get there is returned.
+
+    Args:
+        board_state (3x3 tuple of int): state of the board
+        side (int): side currently to play. +1 for the plus player, -1 for the minus player
+
+    Returns:
+        (result(int), move(int,int)): The result from this rollout, +1 for a win for the plus player -1 for a win for
+            the minus player, 0 for a draw
+    """
     result = has_winner(board_state)
     if result != 0:
         return result, None
@@ -19,6 +30,17 @@ def monte_carlo_sample(board_state, side):
 
 
 def monte_carlo_tree_search(board_state, side, number_of_samples):
+    """Evaluate the best from the current board_state for the given side using monte carlo sampling.
+
+    Args:
+        board_state (3x3 tuple of int): state of the board
+        side (int): side currently to play. +1 for the plus player, -1 for the minus player
+        number_of_samples (int): number of samples rollouts to run from the current position, the higher the number the
+            better the estimation of the position
+
+    Returns:
+        (result(int), move(int,int)): The average result for the best move from this position and what that move was.
+    """
     move_wins = collections.defaultdict(int)
     move_samples = collections.defaultdict(int)
     for _ in range(number_of_samples):
@@ -34,11 +56,23 @@ def monte_carlo_tree_search(board_state, side, number_of_samples):
     return move_wins[move] / move_samples[move], move
 
 
-def upper_confidence_bounds(payout, samples_for_this_machine, log_total_samples):
+def _upper_confidence_bounds(payout, samples_for_this_machine, log_total_samples):
     return payout / samples_for_this_machine + math.sqrt((2 * log_total_samples) / samples_for_this_machine)
 
 
 def monte_carlo_tree_search_uct(board_state, side, number_of_samples):
+    """Evaluate the best from the current board_state for the given side using monte carlo sampling with upper
+    confidence bounds for trees.
+
+    Args:
+        board_state (3x3 tuple of int): state of the board
+        side (int): side currently to play. +1 for the plus player, -1 for the minus player
+        number_of_samples (int): number of samples rollouts to run from the current position, the higher the number the
+            better the estimation of the position
+
+    Returns:
+        (result(int), move(int,int)): The average result for the best move from this position and what that move was.
+    """
     state_results = collections.defaultdict(float)
     state_samples = collections.defaultdict(float)
 
@@ -59,9 +93,9 @@ def monte_carlo_tree_search_uct(board_state, side, number_of_samples):
 
             if all((state in state_samples) for _, state in move_states):
                 log_total_samples = math.log(sum(state_samples[s] for s in move_states.values()))
-                move, state = max(move_states, key=lambda _, s: upper_confidence_bounds(state_results[s],
-                                                                                        state_samples[s],
-                                                                                        log_total_samples))
+                move, state = max(move_states, key=lambda _, s: _upper_confidence_bounds(state_results[s],
+                                                                                         state_samples[s],
+                                                                                         log_total_samples))
             else:
                 move = random.choice(list(move_states.keys()))
 
@@ -90,12 +124,10 @@ def monte_carlo_tree_search_uct(board_state, side, number_of_samples):
 
     return state_results[move_states[move]] / state_samples[move_states[move]], move
 
-# board_state = ((0, 0, 1),
-#                (1, -1, -1),
-#                (0, 0, 0))
 
-board_state = ((1, 0, -1),
-               (1, 0, 0),
-               (0, -1, 0))
+if __name__ == '__main__':
+    board_state = ((1, 0, -1),
+                   (1, 0, 0),
+                   (0, -1, 0))
 
-print(monte_carlo_tree_search_uct(board_state, -1, 10000))
+    print(monte_carlo_tree_search_uct(board_state, -1, 10000))
