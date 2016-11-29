@@ -108,10 +108,7 @@ while True:
     if terminal:
         terminal = True
         reward = -MAX_REWARD
-
         scores.append(total_reward)
-        if len(scores) > STORE_SCORES_LEN:
-            scores.popleft()
 
         print("Time: %s random_action_prob: %s reward %s scores differential %s" %
               (_time, probability_of_random_action, total_reward,
