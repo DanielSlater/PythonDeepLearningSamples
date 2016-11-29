@@ -47,7 +47,7 @@ last_action = np.zeros(ACTIONS_COUNT)
 last_action[1] = 1
 
 probability_of_random_action = INITIAL_RANDOM_ACTION_PROB
-_time = 0
+time = 0
 
 session.run(tf.initialize_all_variables())
 
@@ -106,25 +106,21 @@ while True:
     total_reward += reward
 
     if terminal:
-        terminal = True
         reward = -MAX_REWARD
         scores.append(total_reward)
 
         print("Time: %s random_action_prob: %s reward %s scores differential %s" %
-              (_time, probability_of_random_action, total_reward,
+              (time, probability_of_random_action, total_reward,
                np.mean(scores)))
         total_reward = 0
 
     # store the transition in previous_observations
     observations.append((last_state, last_action, reward, current_state, terminal))
 
-    if len(observations) > MEMORY_SIZE:
-        observations.popleft()
-
     # only train if done observing
     if len(observations) > OBSERVATION_STEPS:
         train()
-        _time += 1
+        time += 1
 
     # update the old values
     if terminal:
