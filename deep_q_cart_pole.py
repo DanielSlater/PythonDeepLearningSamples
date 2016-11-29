@@ -109,7 +109,6 @@ while True:
     if terminal:
         terminal = True
         reward = -MAX_REWARD
-        env.reset()
 
         scores.append(total_reward)
         if len(scores) > STORE_SCORES_LEN:
@@ -132,7 +131,10 @@ while True:
         _time += 1
 
     # update the old values
-    last_state = current_state
+    if terminal:
+        last_state = env.reset()
+    else:
+        last_state = current_state
 
     last_action = choose_next_action()
     next_action = np.argmax(last_action)
