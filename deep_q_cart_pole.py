@@ -9,7 +9,6 @@ import numpy as np
 env = gym.make('CartPole-v0')
 
 MAX_REWARD = 10.
-CHECKPOINT_PATH = 'deep_q_cart_pole'
 ACTIONS_COUNT = 2
 FUTURE_REWARD_DISCOUNT = 0.99
 OBSERVATION_STEPS = 10000.  # time steps to observe before training
