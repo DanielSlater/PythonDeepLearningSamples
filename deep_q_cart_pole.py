@@ -52,7 +52,7 @@ time = 0
 session.run(tf.initialize_all_variables())
 
 
-def choose_next_action():
+def choose_next_action(state):
     new_action = np.zeros([ACTIONS_COUNT])
 
     if random.random() <= probability_of_random_action:
@@ -60,7 +60,7 @@ def choose_next_action():
         action_index = random.randrange(ACTIONS_COUNT)
     else:
         # choose an action given our last state
-        readout_t = session.run(output_layer, feed_dict={input_placeholder: [last_state]})[0]
+        readout_t = session.run(output_layer, feed_dict={input_placeholder: [state]})[0]
         action_index = np.argmax(readout_t)
 
     new_action[action_index] = 1
@@ -127,7 +127,7 @@ while True:
     else:
         last_state = current_state
 
-    last_action = choose_next_action()
+    last_action = choose_next_action(last_state)
 
     # gradually reduce the probability of a random action
     if probability_of_random_action > FINAL_RANDOM_ACTION_PROB \
