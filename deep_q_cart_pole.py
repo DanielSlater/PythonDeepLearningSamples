@@ -96,13 +96,12 @@ def train():
 
 
 last_state = env.reset()
-next_action = 1
 total_reward = 0
 
 while True:
     env.render()
 
-    current_state, reward, terminal, info = env.step(next_action)
+    current_state, reward, terminal, info = env.step(np.argmax(last_action))
     total_reward += reward
 
     if terminal:
@@ -129,7 +128,6 @@ while True:
         last_state = current_state
 
     last_action = choose_next_action()
-    next_action = np.argmax(last_action)
 
     # gradually reduce the probability of a random action
     if probability_of_random_action > FINAL_RANDOM_ACTION_PROB \
