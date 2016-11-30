@@ -100,7 +100,7 @@ total_reward = 0
 
 while True:
     env.render()
-
+    last_action = choose_next_action(last_state)
     current_state, reward, terminal, info = env.step(np.argmax(last_action))
     total_reward += reward
 
@@ -126,8 +126,6 @@ while True:
         last_state = env.reset()
     else:
         last_state = current_state
-
-    last_action = choose_next_action(last_state)
 
     # gradually reduce the probability of a random action
     if probability_of_random_action > FINAL_RANDOM_ACTION_PROB \
