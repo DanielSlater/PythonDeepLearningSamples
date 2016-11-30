@@ -9,16 +9,10 @@ env = gym.make('CartPole-v0')
 
 ACTIONS_COUNT = 2
 FUTURE_REWARD_DISCOUNT = 0.9
-OBSERVATION_STEPS = 20000.  # time steps to observe before training
-EXPLORE_STEPS = 10000.  # frames over which to anneal epsilon
-INITIAL_RANDOM_ACTION_PROB = 1.0  # starting chance of an action being random
-FINAL_RANDOM_ACTION_PROB = 0.0  # final chance of an action being random
-MEMORY_SIZE = 30000  # number of observations to remember
-MINI_BATCH_SIZE = 100  # size of mini batches
-OBS_LAST_STATE_INDEX, OBS_ACTION_INDEX, OBS_REWARD_INDEX, OBS_CURRENT_STATE_INDEX, OBS_TERMINAL_INDEX = range(5)
 LEARN_RATE_ACTOR = 0.01
-LEARN_RATE_CRITIC = 0.009
+LEARN_RATE_CRITIC = 0.01
 STORE_SCORES_LEN = 100.
+GAMES_PER_TRAINING = 3
 INPUT_NODES = env.observation_space.shape[0]
 
 ACTOR_HIDDEN = 20
@@ -32,8 +26,10 @@ actor_feed_forward_weights_2 = tf.Variable(tf.truncated_normal([ACTOR_HIDDEN, AC
 actor_feed_forward_bias_2 = tf.Variable(tf.constant(0.1, shape=[ACTIONS_COUNT]))
 
 actor_input_placeholder = tf.placeholder("float", [None, INPUT_NODES])
-actor_hidden_layer = tf.nn.tanh(tf.matmul(actor_input_placeholder, actor_feed_forward_weights_1) + actor_feed_forward_bias_1)
-actor_output_layer = tf.nn.softmax(tf.matmul(actor_hidden_layer, actor_feed_forward_weights_2) + actor_feed_forward_bias_2)
+actor_hidden_layer = tf.nn.tanh(
+    tf.matmul(actor_input_placeholder, actor_feed_forward_weights_1) + actor_feed_forward_bias_1)
+actor_output_layer = tf.nn.softmax(
+    tf.matmul(actor_hidden_layer, actor_feed_forward_weights_2) + actor_feed_forward_bias_2)
 
 actor_action_placeholder = tf.placeholder("float", [None, ACTIONS_COUNT])
 actor_advantage_placeholder = tf.placeholder("float", [None, 1])
@@ -50,7 +46,8 @@ critic_feed_forward_weights_2 = tf.Variable(tf.truncated_normal([CRITIC_HIDDEN, 
 critic_feed_forward_bias_2 = tf.Variable(tf.constant(0.0, shape=[1]))
 
 critic_input_placeholder = tf.placeholder("float", [None, INPUT_NODES])
-critic_hidden_layer = tf.nn.tanh(tf.matmul(critic_input_placeholder, critic_feed_forward_weights_1) + critic_feed_forward_bias_1)
+critic_hidden_layer = tf.nn.tanh(
+    tf.matmul(critic_input_placeholder, critic_feed_forward_weights_1) + critic_feed_forward_bias_1)
 critic_output_layer = tf.matmul(critic_hidden_layer, critic_feed_forward_weights_2) + critic_feed_forward_bias_2
 
 critic_target_placeholder = tf.placeholder("float", [None, 1])
@@ -78,7 +75,7 @@ def choose_next_action(state):
     except ValueError:
         # sometimes because of rounding errors we end up with probability_of_actions summing to greater than 1.
         # so need to reduce slightly to be a valid value
-        move = np.random.multinomial(1, probability_of_actions / (sum(probability_of_actions) + 1e-5))
+        move = np.random.multinomial(1, probability_of_actions / (sum(probability_of_actions) + 1e-6))
     return move
 
 
@@ -100,8 +97,6 @@ episode_observation = []
 episode_rewards = []
 episode_actions = []
 games = 0
-
-GAMES_PER_TRAINING = 3
 
 critic_costs = deque(maxlen=100)
 
