@@ -108,7 +108,7 @@ while True:
     total_reward += reward
 
     if terminal:
-        reward = -1.#MAX_REWARD
+        reward = -1.
         scores.append(total_reward)
 
         print("Time: %s random_action_prob: %s reward %s scores differential %s" %
