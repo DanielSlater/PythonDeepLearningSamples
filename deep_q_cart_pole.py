@@ -8,15 +8,15 @@ import numpy as np
 
 env = gym.make('CartPole-v0')
 
-MAX_REWARD = 10.
+MAX_REWARD = 1.
 ACTIONS_COUNT = 2
-FUTURE_REWARD_DISCOUNT = 0.99
+FUTURE_REWARD_DISCOUNT = 0.9
 OBSERVATION_STEPS = 10000.  # time steps to observe before training
 EXPLORE_STEPS = 10000.  # frames over which to anneal epsilon
 INITIAL_RANDOM_ACTION_PROB = 1.0  # starting chance of an action being random
 FINAL_RANDOM_ACTION_PROB = 0.0  # final chance of an action being random
-MEMORY_SIZE = 100000  # number of observations to remember
-MINI_BATCH_SIZE = 200  # size of mini batches
+MEMORY_SIZE = 20000  # number of observations to remember
+MINI_BATCH_SIZE = 100  # size of mini batches
 OBS_LAST_STATE_INDEX, OBS_ACTION_INDEX, OBS_REWARD_INDEX, OBS_CURRENT_STATE_INDEX, OBS_TERMINAL_INDEX = range(5)
 LEARN_RATE = 1e-5
 STORE_SCORES_LEN = 100.
