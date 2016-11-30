@@ -8,28 +8,31 @@ import numpy as np
 
 env = gym.make('CartPole-v0')
 
-MAX_REWARD = 1.
 ACTIONS_COUNT = 2
 FUTURE_REWARD_DISCOUNT = 0.9
-OBSERVATION_STEPS = 10000.  # time steps to observe before training
-EXPLORE_STEPS = 10000.  # frames over which to anneal epsilon
+OBSERVATION_STEPS = 5000.  # time steps to observe before training
+EXPLORE_STEPS = 15000.  # frames over which to anneal epsilon
 INITIAL_RANDOM_ACTION_PROB = 1.0  # starting chance of an action being random
 FINAL_RANDOM_ACTION_PROB = 0.0  # final chance of an action being random
 MEMORY_SIZE = 20000  # number of observations to remember
 MINI_BATCH_SIZE = 100  # size of mini batches
 OBS_LAST_STATE_INDEX, OBS_ACTION_INDEX, OBS_REWARD_INDEX, OBS_CURRENT_STATE_INDEX, OBS_TERMINAL_INDEX = range(5)
-LEARN_RATE = 1e-5
+LEARN_RATE = 1e-3
 STORE_SCORES_LEN = 100.
 INPUT_NODES = env.observation_space.shape[0]
-
+HIDDEN_NODES = 20
 
 session = tf.Session()
 
-feed_forward_weights_1 = tf.Variable(tf.truncated_normal([INPUT_NODES, ACTIONS_COUNT], stddev=0.01))
-feed_forward_bias_1 = tf.Variable(tf.constant(0.0, shape=[ACTIONS_COUNT]))
+feed_forward_weights_1 = tf.Variable(tf.truncated_normal([INPUT_NODES, HIDDEN_NODES], stddev=0.01))
+feed_forward_bias_1 = tf.Variable(tf.constant(0.0, shape=[HIDDEN_NODES]))
+
+feed_forward_weights_2 = tf.Variable(tf.truncated_normal([HIDDEN_NODES, ACTIONS_COUNT], stddev=0.01))
+feed_forward_bias_2 = tf.Variable(tf.constant(0.0, shape=[ACTIONS_COUNT]))
 
 input_placeholder = tf.placeholder("float", [None, INPUT_NODES])
-output_layer = tf.matmul(input_placeholder, feed_forward_weights_1) + feed_forward_bias_1
+hidden_layer = tf.nn.tanh(tf.matmul(input_placeholder, feed_forward_weights_1) + feed_forward_bias_1)
+output_layer = tf.matmul(hidden_layer, feed_forward_weights_2) + feed_forward_bias_2
 
 action_placeholder = tf.placeholder("float", [None, ACTIONS_COUNT])
 target_placeholder = tf.placeholder("float", [None])
@@ -59,9 +62,10 @@ def choose_next_action(state):
         # choose an action randomly
         action_index = random.randrange(ACTIONS_COUNT)
     else:
-        # choose an action given our last state
-        readout_t = session.run(output_layer, feed_dict={input_placeholder: [state]})[0]
-        action_index = np.argmax(readout_t)
+        # choose an action given our state
+        action_values = session.run(output_layer, feed_dict={input_placeholder: [state]})[0]
+        # we will take the highest value action
+        action_index = np.argmax(action_values)
 
     new_action[action_index] = 1
     return new_action
@@ -79,7 +83,6 @@ def train():
     agents_expected_reward = []
     # this gives us the agents expected reward for each action we might take
     agents_reward_per_action = session.run(output_layer, feed_dict={input_placeholder: current_states})
-    agents_reward_per_action = np.clip(agents_reward_per_action, -MAX_REWARD, MAX_REWARD)
     for i in range(len(mini_batch)):
         if mini_batch[i][OBS_TERMINAL_INDEX]:
             # this was a terminal frame so there is no future reward...
@@ -105,7 +108,7 @@ while True:
     total_reward += reward
 
     if terminal:
-        reward = -MAX_REWARD
+        reward = -1.#MAX_REWARD
         scores.append(total_reward)
 
         print("Time: %s random_action_prob: %s reward %s scores differential %s" %
