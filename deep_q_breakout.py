@@ -52,7 +52,7 @@ def _create_network():
     feed_forward_weights_2 = tf.Variable(tf.truncated_normal([FLAT_HIDDEN_NODES, ACTIONS_COUNT], stddev=0.01))
     feed_forward_bias_2 = tf.Variable(tf.constant(0.01, shape=[ACTIONS_COUNT]))
 
-    input_layer = tf.placeholder("float", [None, SCREEN_WIDTH, SCREEN_HEIGHT,
+    input_layer = tf.placeholder("float", [None, SCREEN_HEIGHT, SCREEN_WIDTH,
                                            STATE_FRAMES])
 
     hidden_convolutional_layer_1 = tf.nn.relu(
@@ -185,7 +185,7 @@ reward = 0
 score_pre_game = 0
 
 while True:
-    env.render()
+    #env.render()
 
     observation, reward, terminal, info = env.step(_key_presses_from_action(_last_action))
 
@@ -201,7 +201,7 @@ while True:
         _last_state = np.stack(tuple(screen_binary for _ in range(STATE_FRAMES)), axis=2)
     else:
         screen_binary = np.reshape(screen_binary,
-                                   (SCREEN_WIDTH, SCREEN_HEIGHT, 1))
+                                   (SCREEN_HEIGHT, SCREEN_WIDTH, 1))
         current_state = np.append(_last_state[:, :, 1:], screen_binary, axis=2)
 
         _observations.append(
