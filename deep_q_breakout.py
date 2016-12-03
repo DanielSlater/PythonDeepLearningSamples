@@ -16,11 +16,11 @@ ACTIONS_COUNT = 3
 SCREEN_WIDTH, SCREEN_HEIGHT = (72, 84)
 FUTURE_REWARD_DISCOUNT = 0.99
 OBSERVATION_STEPS = 100000.  # time steps to observe before training
-EXPLORE_STEPS = 1300000.  # frames over which to anneal epsilon
+EXPLORE_STEPS = 2000000.  # frames over which to anneal epsilon
 INITIAL_RANDOM_ACTION_PROB = 1.0  # starting chance of an action being random
 FINAL_RANDOM_ACTION_PROB = 0.05  # final chance of an action being random
-MEMORY_SIZE = 200000  # number of observations to remember
-MINI_BATCH_SIZE = 100  # size of mini batches
+MEMORY_SIZE = 800000  # number of observations to remember
+MINI_BATCH_SIZE = 128  # size of mini batches
 STATE_FRAMES = 2  # number of frames to store in the state
 OBS_LAST_STATE_INDEX, OBS_ACTION_INDEX, OBS_REWARD_INDEX, OBS_CURRENT_STATE_INDEX, OBS_TERMINAL_INDEX = range(5)
 SAVE_EVERY_X_STEPS = 20000
@@ -43,7 +43,7 @@ def _create_network():
     convolution_weights_2 = tf.Variable(tf.truncated_normal([4, 4, CONVOLUTIONS_LAYER_1, CONVOLUTIONS_LAYER_2], stddev=0.01))
     convolution_bias_2 = tf.Variable(tf.constant(0.01, shape=[CONVOLUTIONS_LAYER_2]))
 
-    convolution_weights_3 = tf.Variable(tf.truncated_normal([4, 4, CONVOLUTIONS_LAYER_2, CONVOLUTIONS_LAYER_3], stddev=0.01))
+    convolution_weights_3 = tf.Variable(tf.truncated_normal([3, 3, CONVOLUTIONS_LAYER_2, CONVOLUTIONS_LAYER_3], stddev=0.01))
     convolution_bias_3 = tf.Variable(tf.constant(0.01, shape=[CONVOLUTIONS_LAYER_2]))
 
     feed_forward_weights_1 = tf.Variable(tf.truncated_normal([FLAT_SIZE, FLAT_HIDDEN_NODES], stddev=0.01))
@@ -159,7 +159,6 @@ def _train():
     agents_expected_reward = []
     # this gives us the agents expected reward for each action we might take
     agents_reward_per_action = _session.run(_output_layer, feed_dict={_input_layer: current_states})
-    agents_reward_per_action = np.clip(agents_reward_per_action, -1, 1)
     for i in range(len(mini_batch)):
         if mini_batch[i][OBS_TERMINAL_INDEX]:
             # this was a terminal frame so there is no future reward...
@@ -185,13 +184,10 @@ reward = 0
 score_pre_game = 0
 
 while True:
-    #env.render()
+    env.render()
 
     observation, reward, terminal, info = env.step(_key_presses_from_action(_last_action))
-
     score_pre_game += reward
-    if terminal:
-        reward = -1
 
     screen_binary = pre_process(observation)
 
@@ -210,7 +206,7 @@ while True:
         # only train if done observing
         if len(_observations) > OBSERVATION_STEPS:
             _train()
-            _time += 12
+            _time += 1
 
         if terminal:
             _last_scores.append(score_pre_game)
