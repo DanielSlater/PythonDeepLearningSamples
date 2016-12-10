@@ -1,4 +1,5 @@
 # note must import tensorflow before gym
+import pickle
 from collections import deque
 
 import tensorflow as tf
@@ -11,7 +12,7 @@ ACTIONS_COUNT = 2
 FUTURE_REWARD_DISCOUNT = 0.9
 LEARN_RATE_ACTOR = 0.01
 LEARN_RATE_CRITIC = 0.01
-STORE_SCORES_LEN = 100.
+STORE_SCORES_LEN = 5
 GAMES_PER_TRAINING = 3
 INPUT_NODES = env.observation_space.shape[0]
 
@@ -107,7 +108,7 @@ while True:
     total_reward += reward
 
     if terminal:
-        reward = -.1
+        reward = -.10
 
     current_game_observations.append(last_state)
     current_game_rewards.append(reward)
@@ -129,8 +130,8 @@ while True:
 
         critic_costs.append(cost)
 
-        print("Time: %s reward %s average scores %s critic cost %s" %
-              (time, total_reward,
+        print("Game: %s reward %s average scores %s critic cost %s" %
+              (games, total_reward,
                np.mean(scores), np.mean(critic_costs)))
 
         episode_observation.extend(current_game_observations)
@@ -143,17 +144,14 @@ while True:
         current_game_actions = []
 
         if games % GAMES_PER_TRAINING == 0:
-            episode_rewards = np.array(episode_rewards)
-            normalized_rewards = episode_rewards - np.mean(episode_rewards)
-            normalized_rewards /= np.std(normalized_rewards)
-
-            train(episode_observation, episode_actions, normalized_rewards)
+            train(episode_observation, episode_actions, episode_rewards)
 
             episode_observation = []
             episode_actions = []
             episode_rewards = []
 
     time += 1
+
     # update the old values
     if terminal:
         last_state = env.reset()
