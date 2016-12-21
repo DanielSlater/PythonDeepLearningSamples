@@ -3,15 +3,15 @@ from tensorflow.examples.tutorials.mnist import input_data
 
 VISIBLE_NODES = 784
 HIDDEN_NODES = 400
-
-input_placeholder = tf.placeholder("float", shape=(None, VISIBLE_NODES))
 LEARNING_RATE = 0.01
 
-visible_nodes = int(input_placeholder.get_shape()[-1])
+mnist = input_data.read_data_sets("MNIST_data/")
 
-weights = tf.Variable(tf.random_normal((visible_nodes, HIDDEN_NODES), mean=0.0, stddev=1. / visible_nodes))
+input_placeholder = tf.placeholder("float", shape=(None, VISIBLE_NODES))
+
+weights = tf.Variable(tf.random_normal((VISIBLE_NODES, HIDDEN_NODES), mean=0.0, stddev=1. / VISIBLE_NODES))
 hidden_bias = tf.Variable(tf.zeros([HIDDEN_NODES]))
-visible_bias = tf.Variable(tf.zeros([visible_nodes]))
+visible_bias = tf.Variable(tf.zeros([VISIBLE_NODES]))
 
 hidden_activation = tf.nn.sigmoid(tf.matmul(input_placeholder, weights) + hidden_bias)
 visible_reconstruction = tf.nn.sigmoid(tf.matmul(hidden_activation, tf.transpose(weights)) + visible_bias)
@@ -30,8 +30,6 @@ hidden_bias_update = hidden_bias.assign_add(LEARNING_RATE *
 train_op = tf.group(weight_update, visible_bias_update, hidden_bias_update)
 
 loss_op = tf.reduce_sum(tf.square(input_placeholder - visible_reconstruction))
-
-mnist = input_data.read_data_sets("MNIST_data/")
 
 session = tf.Session()
 
