@@ -5,7 +5,7 @@ VISIBLE_NODES = 784
 HIDDEN_NODES = 400
 
 input_placeholder = tf.placeholder("float", shape=(None, VISIBLE_NODES))
-learning_rate = 0.01
+LEARNING_RATE = 0.01
 
 visible_nodes = int(input_placeholder.get_shape()[-1])
 
@@ -21,15 +21,15 @@ final_hidden_activation = tf.nn.sigmoid(tf.matmul(visible_reconstruction, weight
 positive = tf.matmul(tf.transpose(input_placeholder), hidden_activation)
 negative = tf.matmul(tf.transpose(visible_reconstruction), final_hidden_activation)
 
-weight_update = weights.assign_add(learning_rate * (positive - negative))
-visible_bias_update = visible_bias.assign_add(learning_rate *
+weight_update = weights.assign_add(LEARNING_RATE * (positive - negative))
+visible_bias_update = visible_bias.assign_add(LEARNING_RATE *
                                               tf.reduce_mean(input_placeholder - visible_reconstruction, 0))
-hidden_bias_update = hidden_bias.assign_add(learning_rate *
-                                             tf.reduce_mean(hidden_activation - final_hidden_activation, 0))
+hidden_bias_update = hidden_bias.assign_add(LEARNING_RATE *
+                                            tf.reduce_mean(hidden_activation - final_hidden_activation, 0))
 
 train_op = tf.group(weight_update, visible_bias_update, hidden_bias_update)
 
-loss_op = tf.reduce_mean(tf.square(input_placeholder - visible_reconstruction))
+loss_op = tf.reduce_sum(tf.square(input_placeholder - visible_reconstruction))
 
 mnist = input_data.read_data_sets("MNIST_data/")
 
