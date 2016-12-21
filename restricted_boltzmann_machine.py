@@ -18,10 +18,10 @@ visible_reconstruction = tf.nn.sigmoid(tf.matmul(hidden_activation, tf.transpose
 
 final_hidden_activation = tf.nn.sigmoid(tf.matmul(visible_reconstruction, weights) + hidden_bias)
 
-positive = tf.matmul(tf.transpose(input_placeholder), hidden_activation)
-negative = tf.matmul(tf.transpose(visible_reconstruction), final_hidden_activation)
+positive_phase = tf.matmul(tf.transpose(input_placeholder), hidden_activation)
+negative_phase = tf.matmul(tf.transpose(visible_reconstruction), final_hidden_activation)
 
-weight_update = weights.assign_add(LEARNING_RATE * (positive - negative))
+weight_update = weights.assign_add(LEARNING_RATE * (positive_phase - negative_phase))
 visible_bias_update = visible_bias.assign_add(LEARNING_RATE *
                                               tf.reduce_mean(input_placeholder - visible_reconstruction, 0))
 hidden_bias_update = hidden_bias.assign_add(LEARNING_RATE *
