@@ -7,7 +7,7 @@ NUM_ACTIONS = 2
 DISCOUNT_FACTOR = 0.5
 
 
-def hot_one_state(index):
+def one_hot_state(index):
     array = np.zeros(NUM_STATES)
     array[index] = 1.
     return array
@@ -31,13 +31,13 @@ for _ in range(50):
     rewards_batch = []
 
     for state_index in range(NUM_STATES):
-        state_batch.append(hot_one_state(state_index))
+        state_batch.append(one_hot_state(state_index))
 
         minus_action_index = (state_index - 1) % NUM_STATES
         plus_action_index = (state_index + 1) % NUM_STATES
 
-        minus_action_state_reward = session.run(output, feed_dict={state: [hot_one_state(minus_action_index)]})
-        plus_action_state_reward = session.run(output, feed_dict={state: [hot_one_state(plus_action_index)]})
+        minus_action_state_reward = session.run(output, feed_dict={state: [one_hot_state(minus_action_index)]})
+        plus_action_state_reward = session.run(output, feed_dict={state: [one_hot_state(plus_action_index)]})
 
         minus_action_q_value = DISCOUNT_FACTOR * (states[minus_action_index] + np.max(minus_action_state_reward))
         plus_action_q_value = DISCOUNT_FACTOR * (states[plus_action_index] + np.max(plus_action_state_reward))
@@ -49,5 +49,5 @@ for _ in range(50):
         state: state_batch,
         targets: rewards_batch})
 
-    print([states[x] + np.max(session.run(output, feed_dict={state: [hot_one_state(x)]}))
+    print([states[x] + np.max(session.run(output, feed_dict={state: [one_hot_state(x)]}))
            for x in range(NUM_STATES)])
